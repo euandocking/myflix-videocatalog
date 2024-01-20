@@ -17,8 +17,8 @@ app.use(bodyParser.json());
 // Create a new video
 app.post('/api/videos', async (req, res) => {
   try {
-    const { title, description } = req.body;
-    const video = new Video({ title, description });
+    const { title, description, thumbnailUrl, videoUrl } = req.body;
+    const video = new Video({ title, description, thumbnailUrl, videoUrl });
 
     await video.save();
 
@@ -32,11 +32,24 @@ app.post('/api/videos', async (req, res) => {
 // Get all videos
 app.get('/api/videos', async (req, res) => {
   try {
-    const videos = await Video.find();
+    const videos = await Video.find({}, 'title description thumbnailUrl videoUrl'); // Include title, description, thumbnailUrl, and videoUrl
     res.json(videos);
   } catch (error) {
     console.error('Error retrieving videos from the database:', error);
     res.status(500).json({ error: 'Error retrieving videos from the database.' });
+  }
+});
+
+app.get('/api/videos/:id', async (req, res) => {
+  try {
+    const video = await Video.findById(req.params.id);
+    if (!video) {
+      return res.status(404).json({ error: 'Video not found.' });
+    }
+    res.json(video);
+  } catch (error) {
+    console.error(`Error retrieving video with ID ${req.params.id} from the database:`, error);
+    res.status(500).json({ error: 'Error retrieving video from the database.' });
   }
 });
 
