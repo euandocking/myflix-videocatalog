@@ -17,8 +17,8 @@ app.use(bodyParser.json());
 // Create a new video
 app.post('/api/videos', async (req, res) => {
   try {
-    const { title, description, thumbnailUrl, videoUrl } = req.body;
-    const video = new Video({ title, description, thumbnailUrl, videoUrl });
+    const { title, description, thumbnailUrl, videoUrl, category } = req.body;
+    const video = new Video({ title, description, thumbnailUrl, videoUrl, category });
 
     await video.save();
 
@@ -32,7 +32,7 @@ app.post('/api/videos', async (req, res) => {
 // Get all videos
 app.get('/api/videos', async (req, res) => {
   try {
-    const videos = await Video.find({}, 'title description thumbnailUrl videoUrl'); // Include title, description, thumbnailUrl, and videoUrl
+    const videos = await Video.find({}, 'title description thumbnailUrl videoUrl category'); // Include title, description, thumbnailUrl, and videoUrl
     res.json(videos);
   } catch (error) {
     console.error('Error retrieving videos from the database:', error);
