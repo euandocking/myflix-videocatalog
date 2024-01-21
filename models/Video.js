@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const videoSchema = new mongoose.Schema({
   title: String,
   description: String,
-  thumbnailUrl: String, // New field for thumbnail URL
-  videoUrl: { type: String, required: true }, // New field for video URL, marked as required
-  category: String,
+  thumbnailUrl: String,
+  videoUrl: { type: String, required: true },
+  categories: [String], // Change the type to an array of strings
   // Add other fields as needed
 });
 
