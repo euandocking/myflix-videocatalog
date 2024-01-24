@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');  // Added this line
 const Video = require('./models/Video');
 
 const app = express();
@@ -14,11 +15,32 @@ mongoose.connect(mongoUri, { useNewUrlParser: true, useUnifiedTopology: true });
 app.use(cors());
 app.use(bodyParser.json());
 
-// Create a new video
-app.post('/api/videos', async (req, res) => {
+// Middleware to verify JWT
+const verifyToken = (req, res, next) => {
+  const token = req.header('Authorization');
+
+  if (!token) {
+    return res.status(401).json({ error: 'Token not provided.' });
+  }
+
+  jwt.verify(token, 'your_secret_key', (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Invalid token.' });
+    }
+
+    req.user = decoded;  // Set user information in the request for further use
+    next();
+  });
+};
+
+// Use the middleware for protected routes
+app.post('/api/videos', verifyToken, async (req, res) => {
   try {
     const { title, description, thumbnailUrl, videoUrl, categories } = req.body;
     const video = new Video({ title, description, thumbnailUrl, videoUrl, categories });
+
+    // Set the user ID for the video
+    video.userId = req.user.userId;
 
     await video.save();
 
@@ -30,7 +52,7 @@ app.post('/api/videos', async (req, res) => {
 });
 
 // Get all videos with average ratings
-app.get('/api/videos', async (req, res) => {
+app.get('/api/videos', verifyToken, async (req, res) => {
   try {
     const videos = await Video.find({}, 'title description thumbnailUrl videoUrl categories userRatings');
 
@@ -55,7 +77,7 @@ app.get('/api/videos', async (req, res) => {
 });
 
 // Get a specific video with average rating
-app.get('/api/videos/:id', async (req, res) => {
+app.get('/api/videos/:id', verifyToken, async (req, res) => {
   try {
     const video = await Video.findById(req.params.id);
 
@@ -81,7 +103,7 @@ app.get('/api/videos/:id', async (req, res) => {
   }
 });
 
-// Add more routes for updating and deleting videos as needed
+// Other routes should also use verifyToken middleware as needed
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
